@@ -22,7 +22,7 @@ jobs:
 
       # Publish the site
       - name: Publish
-        run: dotnet publish HighFiveSample/HighFiveSample.csproj -p:GHPages=true -c:Release -o:publish
+        run: dotnet publish BlazorApp1/BlazorApp1.csproj -p:GHPages=true -c:Release -o:publish
 
       # Deploy the site
       - name: Deploy

@@ -12,7 +12,27 @@ Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
 
-<button class="btn btn-primary" @onclick="ButtonClick">Click me</button>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Entry Index</th>
+            <th>Label</th>
+            <th>Text</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (Item item in _items)
+        {
+            <tr>
+                <td>@item.EntryIndex</td>
+                <td>@item.Label</td>
+                <td><input type="text" @bind="@item.Text" /></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<button class="btn btn-primary" @onclick="ButtonClick">Download</button>
 
 @code {
     private readonly Item[] _items = new Item[]

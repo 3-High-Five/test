@@ -1,6 +1,8 @@
 @page "/"
 @using System.IO.Compression;
 @using System.Xml;
+@using Azure.AI.OpenAI;
+@using static BlazorApp1.Shared.PptxChangeTextList;
 @inject HttpClient Http
 @inject IJSRuntime JS
 
@@ -12,140 +14,46 @@ Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Entry Index</th>
-            <th>Label</th>
-            <th>Text</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (Item item in _items)
-        {
-            <tr>
-                <td>@item.EntryIndex</td>
-                <td>@item.Label</td>
-                <td><input type="text" @bind="@item.Text" /></td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<button class="btn btn-primary" @onclick="ButtonClick">Download</button>
+<PptxChangeTextList items="@items" targetFilePath="slide/High_Five.pptx" outputFilePath="HighFive.pptx" />
 
 @code {
-    private readonly Item[] _items = new Item[]
+    private readonly Item[] items = new Item[]
     {
-    new() { Label = "会社名", Text="HighFive Inc.", EntryIndex = 4, Nodes = new int[] {1, 0, 1, 8, 2, 2, 2, 1, 0, }},
-    new() { Label = "代表取締役名", EntryIndex = 6, Nodes = new int[] {1, 0, 0, 5, 2, 4, 3, 1, 0, }},
-    new() { Label = "社員 A", EntryIndex = 7, Nodes = new int[] {1, 0, 0, 6, 3, 2, 2, 3, 1, 0, }},
-    new() { Label = "社員 A の業務内容", EntryIndex = 7, Nodes = new int[] {1, 0, 0, 6, 4, 2, 2, 3, 1, 0, }},
-    new() { Label = "社員 B", EntryIndex = 7, Nodes = new int[] {1, 0, 0, 7, 3, 2, 2, 3, 1, 0, }},
-    new() { Label = "社員 B の業務内容", EntryIndex = 7, Nodes = new int[] {1, 0, 0, 7, 4, 2, 2, 3, 1, 0, }},
-    new() { Label = "社員 C", EntryIndex = 7, Nodes = new int[] {1, 0, 0, 8, 3, 2, 2, 3, 1, 0, }},
-    new() { Label = "社員 C の業務内容", EntryIndex = 7, Nodes = new int[] {1, 0, 0, 8, 4, 2, 2, 3, 1, 0, }},
-    new() { Label = "社員 D", EntryIndex = 7, Nodes = new int[] {1, 0, 0, 9, 3, 2, 2, 3, 1, 0, }},
-    new() { Label = "社員 D の業務内容", EntryIndex = 7, Nodes = new int[] {1, 0, 0, 9, 4, 2, 2, 3, 1, 0, }},
-    new() { Label = "企業理念", EntryIndex = 8, Nodes = new int[] {1, 0, 1, 4, 2, 2, 2, 1, 0, }},
-    new() { Label = "企業理念詳細", EntryIndex = 8, Nodes = new int[] {1, 0, 1, 5, 2, 2, 2, 1, 0, }},
-    new() { Label = "行動詳細", EntryIndex = 9, Nodes = new int[] {1, 0, 0, 7, 2, 2, 2, 1, 0, }},
-    new() { Label = "行動詳細 1", EntryIndex = 9, Nodes = new int[] {1, 0, 0, 8, 2, 2, 2, 1, 0, }},
-    new() { Label = "行動詳細 2", EntryIndex = 9, Nodes = new int[] {1, 0, 0, 8, 2, 3, 2, 1, 0, }},
-    new() { Label = "行動詳細 3", EntryIndex = 9, Nodes = new int[] {1, 0, 0, 8, 2, 4, 2, 1, 0, }},
-    new() { Label = "事業 A", EntryIndex = 10, Nodes = new int[] {1, 0, 0, 3, 3, 2, 2, 2, 1, 0, }},
-    new() { Label = "事業 A 詳細内容", EntryIndex = 10, Nodes = new int[] {1, 0, 0, 3, 4, 2, 2, 2, 1, 0, }},
-    new() { Label = "事業 B", EntryIndex = 10, Nodes = new int[] {1, 0, 0, 4, 3, 2, 2, 2, 1, 0, }},
-    new() { Label = "事業 B 詳細内容", EntryIndex = 10, Nodes = new int[] {1, 0, 0, 4, 4, 2, 2, 2, 1, 0, }},
-    new() { Label = "事業 C", EntryIndex = 10, Nodes = new int[] {1, 0, 0, 5, 3, 2, 2, 2, 1, 0, }},
-    new() { Label = "事業 C 詳細内容", EntryIndex = 10, Nodes = new int[] {1, 0, 0, 5, 4, 2, 2, 2, 1, 0, }},
-    new() { Label = "計画 A", EntryIndex = 11, Nodes = new int[] {1, 0, 0, 6, 3, 2, 2, 2, 1, 0, }},
-    new() { Label = "計画 A 詳細内容", EntryIndex = 11, Nodes = new int[] {1, 0, 0, 6, 2, 2, 2, 2, 1, 0, }},
-    new() { Label = "計画 B", EntryIndex = 11, Nodes = new int[] {1, 0, 0, 7, 3, 2, 2, 2, 1, 0, }},
-    new() { Label = "計画 B 詳細内容", EntryIndex = 11, Nodes = new int[] {1, 0, 0, 7, 2, 2, 2, 2, 1, 0, }},
-    new() { Label = "まとめ 1", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 7, 2, 2, 2, 1, 0, }},
-    new() { Label = "まとめ 1 詳細内容", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 13, 2, 2, 2, 1, 0, }},
-    new() { Label = "まとめ 2", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 8, 2, 2, 2, 1, 0, }},
-    new() { Label = "まとめ 2 詳細内容", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 14, 2, 2, 2, 1, 0, }},
-    new() { Label = "まとめ 3", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 10, 2, 2, 2, 1, 0, }},
-    new() { Label = "まとめ 3 詳細内容", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 15, 2, 2, 2, 1, 0, }},
-    new() { Label = "まとめ 4", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 11, 2, 2, 2, 1, 0, }},
-    new() { Label = "まとめ 4 詳細内容", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 16, 2, 2, 2, 1, 0, }},
-    new() { Label = "まとめ 5", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 12, 2, 2, 2, 1, 0, }},
-    new() { Label = "まとめ 5 詳細内容", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 17, 2, 2, 2, 1, 0, }},
+        new() { Label = "会社名", Text="HighFive Inc.", EntryIndex = 4, Nodes = new int[] {1, 0, 1, 8, 2, 2, 2, 1, 0, }},
+        new() { Label = "代表取締役名", EntryIndex = 6, Nodes = new int[] {1, 0, 0, 5, 2, 4, 3, 1, 0, }},
+        new() { Label = "社員 A", EntryIndex = 7, Nodes = new int[] {1, 0, 0, 6, 3, 2, 2, 3, 1, 0, }},
+        new() { Label = "社員 A の業務内容", EntryIndex = 7, Nodes = new int[] {1, 0, 0, 6, 4, 2, 2, 3, 1, 0, }},
+        new() { Label = "社員 B", EntryIndex = 7, Nodes = new int[] {1, 0, 0, 7, 3, 2, 2, 3, 1, 0, }},
+        new() { Label = "社員 B の業務内容", EntryIndex = 7, Nodes = new int[] {1, 0, 0, 7, 4, 2, 2, 3, 1, 0, }},
+        new() { Label = "社員 C", EntryIndex = 7, Nodes = new int[] {1, 0, 0, 8, 3, 2, 2, 3, 1, 0, }},
+        new() { Label = "社員 C の業務内容", EntryIndex = 7, Nodes = new int[] {1, 0, 0, 8, 4, 2, 2, 3, 1, 0, }},
+        new() { Label = "社員 D", EntryIndex = 7, Nodes = new int[] {1, 0, 0, 9, 3, 2, 2, 3, 1, 0, }},
+        new() { Label = "社員 D の業務内容", EntryIndex = 7, Nodes = new int[] {1, 0, 0, 9, 4, 2, 2, 3, 1, 0, }},
+        new() { Label = "企業理念", EntryIndex = 8, Nodes = new int[] {1, 0, 1, 4, 2, 2, 2, 1, 0, }},
+        new() { Label = "企業理念詳細", EntryIndex = 8, Nodes = new int[] {1, 0, 1, 5, 2, 2, 2, 1, 0, }},
+        new() { Label = "行動詳細", EntryIndex = 9, Nodes = new int[] {1, 0, 0, 7, 2, 2, 2, 1, 0, }},
+        new() { Label = "行動詳細 1", EntryIndex = 9, Nodes = new int[] {1, 0, 0, 8, 2, 2, 2, 1, 0, }},
+        new() { Label = "行動詳細 2", EntryIndex = 9, Nodes = new int[] {1, 0, 0, 8, 2, 3, 2, 1, 0, }},
+        new() { Label = "行動詳細 3", EntryIndex = 9, Nodes = new int[] {1, 0, 0, 8, 2, 4, 2, 1, 0, }},
+        new() { Label = "事業 A", EntryIndex = 10, Nodes = new int[] {1, 0, 0, 3, 3, 2, 2, 2, 1, 0, }},
+        new() { Label = "事業 A 詳細内容", EntryIndex = 10, Nodes = new int[] {1, 0, 0, 3, 4, 2, 2, 2, 1, 0, }},
+        new() { Label = "事業 B", EntryIndex = 10, Nodes = new int[] {1, 0, 0, 4, 3, 2, 2, 2, 1, 0, }},
+        new() { Label = "事業 B 詳細内容", EntryIndex = 10, Nodes = new int[] {1, 0, 0, 4, 4, 2, 2, 2, 1, 0, }},
+        new() { Label = "事業 C", EntryIndex = 10, Nodes = new int[] {1, 0, 0, 5, 3, 2, 2, 2, 1, 0, }},
+        new() { Label = "事業 C 詳細内容", EntryIndex = 10, Nodes = new int[] {1, 0, 0, 5, 4, 2, 2, 2, 1, 0, }},
+        new() { Label = "計画 A", EntryIndex = 11, Nodes = new int[] {1, 0, 0, 6, 3, 2, 2, 2, 1, 0, }},
+        new() { Label = "計画 A 詳細内容", EntryIndex = 11, Nodes = new int[] {1, 0, 0, 6, 2, 2, 2, 2, 1, 0, }},
+        new() { Label = "計画 B", EntryIndex = 11, Nodes = new int[] {1, 0, 0, 7, 3, 2, 2, 2, 1, 0, }},
+        new() { Label = "計画 B 詳細内容", EntryIndex = 11, Nodes = new int[] {1, 0, 0, 7, 2, 2, 2, 2, 1, 0, }},
+        new() { Label = "まとめ 1", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 7, 2, 2, 2, 1, 0, }},
+        new() { Label = "まとめ 1 詳細内容", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 13, 2, 2, 2, 1, 0, }},
+        new() { Label = "まとめ 2", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 8, 2, 2, 2, 1, 0, }},
+        new() { Label = "まとめ 2 詳細内容", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 14, 2, 2, 2, 1, 0, }},
+        new() { Label = "まとめ 3", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 10, 2, 2, 2, 1, 0, }},
+        new() { Label = "まとめ 3 詳細内容", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 15, 2, 2, 2, 1, 0, }},
+        new() { Label = "まとめ 4", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 11, 2, 2, 2, 1, 0, }},
+        new() { Label = "まとめ 4 詳細内容", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 16, 2, 2, 2, 1, 0, }},
+        new() { Label = "まとめ 5", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 12, 2, 2, 2, 1, 0, }},
+        new() { Label = "まとめ 5 詳細内容", EntryIndex = 12, Nodes = new int[] {1, 0, 1, 17, 2, 2, 2, 1, 0, }},
     };
-
-    private async Task ButtonClick()
-    {
-        using MemoryStream memoryStream = new();
-        memoryStream.Write(await Http.GetByteArrayAsync("slide/High_Five.pptx"));
-
-        using (ZipArchive zipArchive = new(memoryStream, ZipArchiveMode.Update))
-        {
-            int currentEntryIndex = -1;
-            ZipArchiveEntry? zipArchiveEntry = null;
-            Stream? stream = null;
-            XmlDocument? xmlDocument = null;
-
-            for (int i = 0; i < _items.Length; i++)
-            {
-                if (currentEntryIndex != _items[i].EntryIndex)
-                {
-                    Save(zipArchiveEntry, stream, xmlDocument);
-
-                    zipArchiveEntry = zipArchive.Entries[_items[i].EntryIndex];
-
-                    if (zipArchiveEntry is null) continue;
-
-                    currentEntryIndex = _items[i].EntryIndex;
-
-                    xmlDocument = new();
-
-                    stream = zipArchiveEntry.Open();
-                    xmlDocument.Load(stream);
-                }
-
-                if (zipArchiveEntry is null || stream is null || xmlDocument is null) continue;
-
-                XmlNode? xmlNode = xmlDocument;
-                int[] nodes = _items[i].Nodes;
-
-                for (int j = 0; j < nodes.Length; j++)
-                {
-                    xmlNode = xmlNode?.ChildNodes[nodes[j]];
-                }
-
-                if (xmlNode is null) continue;
-
-                xmlNode.Value = _items[i].Text;
-            }
-
-            Save(zipArchiveEntry, stream, xmlDocument);
-        }
-
-        using MemoryStream toMarshalmemoryStream = new(memoryStream.ToArray());
-        using DotNetStreamReference streamRef = new(toMarshalmemoryStream);
-
-        await JS.InvokeVoidAsync("downloadFileFromStream", "HighFive.pptx", streamRef);
-    }
-
-    static void Save(ZipArchiveEntry? zipArchiveEntry, Stream? stream, XmlDocument? xmlDocument)
-    {
-        if (zipArchiveEntry is not null && stream is not null && xmlDocument is not null)
-        {
-            stream.Seek(0, SeekOrigin.Begin);
-            xmlDocument.Save(stream);
-            stream.Dispose();
-        }
-    }
-
-    public sealed class Item
-    {
-        public required string Label { get; set; }
-        public required int EntryIndex { get; set; }
-        public required int[] Nodes { get; set; }
-        public string Text { get; set; } = "";
-        public string Prefix { get; set; } = "";
-        public string Suffix { get; set; } = "";
-    }
 }

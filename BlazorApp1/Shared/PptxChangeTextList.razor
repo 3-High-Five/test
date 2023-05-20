@@ -1,0 +1,116 @@
+@using System.IO.Compression;
+@using System.Xml;
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<h3>PptxChangeTextList</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Entry Index</th>
+            <th>Label</th>
+            <th>Text</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (Item item in items)
+        {
+            <tr>
+                <td>@item.EntryIndex</td>
+                <td>@item.Label</td>
+                <td><input type="text" @bind="@item.Text" /></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<button class="btn btn-primary" @onclick="ButtonClick">Download</button>
+
+@code {
+    [Parameter]
+    public required Item[] items { get; set; }
+    [Parameter]
+    public required string targetFilePath { get; set; }
+    [Parameter]
+    public required string outputFilePath { get; set; }
+
+    private Task ButtonClick()
+    {
+        return ChangePptxFileText(targetFilePath, outputFilePath, items, Http, JS);
+    }
+
+    private static async Task ChangePptxFileText(string targetFilePath, string outputFilePath, Item[] items, HttpClient httpClient, IJSRuntime jSRuntime)
+    {
+        using MemoryStream memoryStream = new();
+        memoryStream.Write(await httpClient.GetByteArrayAsync(targetFilePath));
+
+        using (ZipArchive zipArchive = new(memoryStream, ZipArchiveMode.Update))
+        {
+            int currentEntryIndex = -1;
+            ZipArchiveEntry? zipArchiveEntry = null;
+            Stream? stream = null;
+            XmlDocument? xmlDocument = null;
+
+            for (int i = 0; i < items.Length; i++)
+            {
+                if (currentEntryIndex != items[i].EntryIndex)
+                {
+                    Save(zipArchiveEntry, stream, xmlDocument);
+
+                    zipArchiveEntry = zipArchive.Entries[items[i].EntryIndex];
+
+                    if (zipArchiveEntry is null) continue;
+
+                    currentEntryIndex = items[i].EntryIndex;
+
+                    xmlDocument = new();
+
+                    stream = zipArchiveEntry.Open();
+                    xmlDocument.Load(stream);
+                }
+
+                if (zipArchiveEntry is null || stream is null || xmlDocument is null) continue;
+
+                XmlNode? xmlNode = xmlDocument;
+                int[] nodes = items[i].Nodes;
+
+                for (int j = 0; j < nodes.Length; j++)
+                {
+                    xmlNode = xmlNode?.ChildNodes[nodes[j]];
+                }
+
+                if (xmlNode is null) continue;
+
+                xmlNode.Value = items[i].Text;
+            }
+
+            Save(zipArchiveEntry, stream, xmlDocument);
+        }
+
+        using MemoryStream toMarshalmemoryStream = new(memoryStream.ToArray());
+        using DotNetStreamReference streamRef = new(toMarshalmemoryStream);
+
+        await jSRuntime.InvokeVoidAsync("downloadFileFromStream", outputFilePath, streamRef);
+    }
+
+    static void Save(ZipArchiveEntry? zipArchiveEntry, Stream? stream, XmlDocument? xmlDocument)
+    {
+        if (zipArchiveEntry is not null && stream is not null && xmlDocument is not null)
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+            xmlDocument.Save(stream);
+            stream.Dispose();
+        }
+    }
+
+    public sealed class Item
+    {
+        public required string Label { get; set; }
+        public required int EntryIndex { get; set; }
+        public required int[] Nodes { get; set; }
+        public string Text { get; set; } = "";
+        public string Prefix { get; set; } = "";
+        public string Suffix { get; set; } = "";
+    }
+}

@@ -6,7 +6,7 @@
        OpenAI API Key を入力してください
     </p>
 
-    <input type="text" maxlength="64" @bind="@OpenAIApiKey" />
+    <input type="password" maxlength="64" @bind="@OpenAIApiKey" />
     <button type="button" @onclick="@Start"><span class="oi oi-chat" aria-hidden="true"></span> はじめる</button>
     }
 else
@@ -39,6 +39,7 @@ else
     private string? OpenAIApiKey;
 
     private OpenAIClient? _client;
+    private ChatCompletionsOptions? _chatCompletionsOptions;
 
     private Task _task = Task.CompletedTask;
 
@@ -53,20 +54,19 @@ else
     private async Task SendAsync()
     {
         if (_client is null) return;
+        if (_chatCompletionsOptions is null) return;
 
         _messages.Add(new("あなた", _message, true));
 
-        ChatCompletionsOptions chatCompletionsOptions = new();
-        chatCompletionsOptions.Messages.Add(new(ChatRole.User, _message));
+        _chatCompletionsOptions.Messages.Add(new(ChatRole.User, _message));
 
         _message = "";
 
-        Task<Azure.Response<ChatCompletions>> task = _client.GetChatCompletionsAsync("gpt-3.5-turbo-0301", chatCompletionsOptions);
+        Task<Azure.Response<ChatCompletions>> task = _client.GetChatCompletionsAsync("gpt-3.5-turbo-0301", _chatCompletionsOptions);
         _task = task;
         Azure.Response<ChatCompletions> result = await task;
 
         _responses.Add(result);
-
         _messages.Add(new("AI", result.Value.Choices[0].Message.Content, false));
     }
 

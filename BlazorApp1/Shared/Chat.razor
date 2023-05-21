@@ -41,8 +41,13 @@ else
     private OpenAIClient? _client;
 
     private Task _task = Task.CompletedTask;
+
+    private async Task Start()
     {
         _client = new(OpenAIApiKey);
+
+        await Task.CompletedTask;
+        return;
     }
 
     private async Task SendAsync()

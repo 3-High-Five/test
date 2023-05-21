@@ -1,6 +1,6 @@
 @using Azure.AI.OpenAI;
 
-@if (client is null)
+@if (_client is null)
 {
     <p>
         Enter your OpenAI API Key:
@@ -40,7 +40,7 @@ else
 
     private OpenAIClient? _client;
 
-    private void Start()
+    private Task _task = Task.CompletedTask;
     {
         _client = new(OpenAIApiKey);
     }

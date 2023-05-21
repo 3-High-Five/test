@@ -46,6 +46,7 @@ else
     private async Task Start()
     {
         _client = new(OpenAIApiKey);
+        _chatCompletionsOptions = new();
 
         await Task.CompletedTask;
         return;

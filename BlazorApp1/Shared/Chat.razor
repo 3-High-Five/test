@@ -3,11 +3,11 @@
 @if (_client is null)
 {
     <p>
-       OpenAI API Key を入力してください：
+       OpenAI API Key を入力してください
     </p>
 
     <input type="text" maxlength="64" @bind="@OpenAIApiKey" />
-    <button type="button" @onclick="@Start"><span class="oi oi-chat" aria-hidden="true"></span> Start!</button>
+    <button type="button" @onclick="@Start"><span class="oi oi-chat" aria-hidden="true"></span> はじめる</button>
     }
 else
 {

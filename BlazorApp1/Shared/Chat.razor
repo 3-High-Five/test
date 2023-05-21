@@ -3,7 +3,7 @@
 @if (_client is null)
 {
     <p>
-        Enter your OpenAI API Key:
+       OpenAI API Key を入力してください：
     </p>
 
     <input type="text" maxlength="64" @bind="@OpenAIApiKey" />
@@ -29,9 +29,9 @@ else
 
         <hr />
 
-        <textarea class="input-lg" placeholder="enter your text" @bind="@_message"></textarea>
+        <textarea class="input-lg" placeholder="テキストを入力" @bind="@_message"></textarea>
 
-        <button class="btn btn-default" @onclick="@SendAsync">Send</button>
+        <button class="btn btn-default" @onclick="@SendAsync">送信</button>
     </div>
 }
 
@@ -54,7 +54,7 @@ else
     {
         if (_client is null) return;
 
-        _messages.Add(new("You", _message, true));
+        _messages.Add(new("あなた", _message, true));
 
         ChatCompletionsOptions chatCompletionsOptions = new();
         chatCompletionsOptions.Messages.Add(new(ChatRole.User, _message));
